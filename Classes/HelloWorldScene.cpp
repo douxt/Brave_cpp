@@ -41,12 +41,15 @@ bool HelloWorld::init()
 	Player* player = Player::create(Player::PlayerType::PLAYER);
 	player->setPosition(origin.x + player->getContentSize().width/2, origin.y + visibleSize.height/2);
 	this->addChild(player);
-	player->playAnimationForever(1);
+
 
 	//add enemy1
 	Player* enemy1 = Player::create(Player::PlayerType::ENEMY1);
 	enemy1->setPosition(origin.x + visibleSize.width - player->getContentSize().width/2, origin.y + visibleSize.height/2);
 	this->addChild(enemy1);
+
+	//test animation
+	player->playAnimationForever(1);
 	enemy1->playAnimationForever(1);
 
     return true;

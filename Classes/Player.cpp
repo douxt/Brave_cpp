@@ -31,13 +31,10 @@ bool Player::initWithPlayerType(PlayerType type)
 		break;
 	}
 	this->initWithSpriteFrameName(sfName);
-
 	std::string animationNames[] = {"walk", "attack", "dead", "hit", "skill"};
 	_animationNames.assign(animationNames, animationNames + 5);
-
 	//load animation
 	this->addAnimation();
-
 	return true;
 }
 
@@ -70,7 +67,7 @@ void Player::addAnimation()
 	for(int i=0; i<_animationNum; i++)
 	{
 		auto animation = Animation::create();
-		animation->setDelayPerUnit(0.2);
+		animation->setDelayPerUnit(0.2f);
 		//put frames into animation
 		for(int j = 0; j< _animationFrameNum[i] ; j++)
 		{
@@ -82,8 +79,6 @@ void Player::addAnimation()
 		AnimationCache::getInstance()->addAnimation(animation, String::createWithFormat("%s-%s",_name.c_str(), 
 					_animationNames[i].c_str())->getCString());
 	}
-
-
 }
 
 
