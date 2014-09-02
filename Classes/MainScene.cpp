@@ -77,6 +77,6 @@ bool MainScene::onTouchBegan(Touch* touch, Event* event)
 {
 	Vec2 pos = this->convertToNodeSpace(touch->getLocation());
 	_player->walkTo(pos);
-	log("MainScene::onTouchBegan");
+//	log("MainScene::onTouchBegan");
 	return true;
 }

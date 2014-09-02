@@ -6,7 +6,6 @@ bool Player::initWithPlayerType(PlayerType type)
 	std::string sfName = "";
 	_type = type;
 	_speed = 100;
-	_seq = nullptr;
 	int animationFrameNum[5] ={4, 4, 4, 2, 4};
 	int animationFrameNum2[5] ={3, 3, 3, 2, 0};
 
@@ -87,6 +86,14 @@ void Player::addAnimation()
 
 void Player::playAnimationForever(int index)
 {
+	auto act = this->getActionByTag(index);
+	if(act)
+		return;
+
+	for(int i=0;i<5;i++)
+	{
+		this->stopActionByTag(i);
+	}
 	if(index <0 || index >= _animationNum)
 	{
 		log("illegal animation index!");
@@ -95,16 +102,15 @@ void Player::playAnimationForever(int index)
 	auto str = String::createWithFormat("%s-%s",_name.c_str(), _animationNames[index].c_str())->getCString();
 	auto animation = AnimationCache::getInstance()->getAnimation(str);
 	auto animate = RepeatForever::create(Animate::create(animation));
+	animate->setTag(index);
 	this->runAction(animate);
 }
 
 void Player::walkTo(Vec2 dest)
 {
 	//stop current moving action, if any.
-	if(_seq)
-		this->stopAction(_seq);
+	this->stopActionByTag(WALKTO_TAG);
 	
-//	this->stopActionByTag(0);
 	auto curPos = this->getPosition();
 
 	//flip when moving backward
@@ -117,15 +123,14 @@ void Player::walkTo(Vec2 dest)
 	auto diff = dest - curPos;
 	auto time = diff.getLength()/_speed;
 	auto move = MoveTo::create(time, dest);
+	//lambda function
 	auto func = [&]()
 	{
 		this->stopAllActions();
-		_seq = nullptr;
 	};
 	auto callback = CallFunc::create(func);
-	_seq = Sequence::create(move, callback, nullptr);
-
-	this->runAction(_seq);
+	auto seq = Sequence::create(move, callback, nullptr);
+	seq->setTag(WALKTO_TAG);
+	this->runAction(seq);
 	this->playAnimationForever(0);
-
 }
