@@ -1,7 +1,6 @@
 #include "HelloWorldScene.h"
-#include "Player.h"
 
-USING_NS_CC;
+
 
 Scene* HelloWorld::createScene()
 {
@@ -38,19 +37,23 @@ bool HelloWorld::init()
 	this->addChild(background);
 
 	//add player
-	Player* player = Player::create(Player::PlayerType::PLAYER);
-	player->setPosition(origin.x + player->getContentSize().width/2, origin.y + visibleSize.height/2);
-	this->addChild(player);
+	_player = Player::create(Player::PlayerType::PLAYER);
+	_player->setPosition(origin.x + _player->getContentSize().width/2, origin.y + visibleSize.height/2);
+	this->addChild(_player);
 
 
 	//add enemy1
-	Player* enemy1 = Player::create(Player::PlayerType::ENEMY1);
-	enemy1->setPosition(origin.x + visibleSize.width - player->getContentSize().width/2, origin.y + visibleSize.height/2);
-	this->addChild(enemy1);
+	_enemy1 = Player::create(Player::PlayerType::ENEMY1);
+	_enemy1->setPosition(origin.x + visibleSize.width - _player->getContentSize().width/2, origin.y + visibleSize.height/2);
+	this->addChild(_enemy1);
 
 	//test animation
-	player->playAnimationForever(1);
-	enemy1->playAnimationForever(1);
+//	_player->playAnimationForever(1);
+	_enemy1->playAnimationForever(1);
+
+	_listener_touch = EventListenerTouchOneByOne::create();
+	_listener_touch->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan,this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
 
     return true;
 }
@@ -68,4 +71,12 @@ void HelloWorld::menuCloseCallback(Ref* pSender)
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     exit(0);
 #endif
+}
+
+bool HelloWorld::onTouchBegan(Touch* touch, Event* event)
+{
+	Vec2 pos = this->convertToNodeSpace(touch->getLocation());
+	_player->walkTo(pos);
+	log("HelloWorld::onTouchBegan");
+	return true;
 }

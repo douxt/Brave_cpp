@@ -22,6 +22,8 @@ public:
 	void addAnimation();
 	//Repeat the selected animation forever
 	void playAnimationForever(int index);
+
+	void walkTo(Vec2 dest);
 	
 private:
 	PlayerType _type;  
@@ -29,6 +31,8 @@ private:
 	int _animationNum; 
 	std::vector<int> _animationFrameNum;
 	std::vector<std::string> _animationNames;
+	float _speed;
+	Sequence* _seq;
 
 };
 
