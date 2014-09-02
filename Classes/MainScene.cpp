@@ -1,14 +1,14 @@
-#include "HelloWorldScene.h"
+#include "MainScene.h"
 
 
 
-Scene* HelloWorld::createScene()
+Scene* MainScene::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::create();
     
     // 'layer' is an autorelease object
-    auto layer = HelloWorld::create();
+    auto layer = MainScene::create();
 
     // add layer as a child to scene
     scene->addChild(layer);
@@ -18,7 +18,7 @@ Scene* HelloWorld::createScene()
 }
 
 // on "init" you need to initialize your instance
-bool HelloWorld::init()
+bool MainScene::init()
 {
     if ( !Layer::init() )
     {
@@ -52,14 +52,14 @@ bool HelloWorld::init()
 	_enemy1->playAnimationForever(1);
 
 	_listener_touch = EventListenerTouchOneByOne::create();
-	_listener_touch->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan,this);
+	_listener_touch->onTouchBegan = CC_CALLBACK_2(MainScene::onTouchBegan,this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
 
     return true;
 }
 
 
-void HelloWorld::menuCloseCallback(Ref* pSender)
+void MainScene::menuCloseCallback(Ref* pSender)
 {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
 	MessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
@@ -73,10 +73,10 @@ void HelloWorld::menuCloseCallback(Ref* pSender)
 #endif
 }
 
-bool HelloWorld::onTouchBegan(Touch* touch, Event* event)
+bool MainScene::onTouchBegan(Touch* touch, Event* event)
 {
 	Vec2 pos = this->convertToNodeSpace(touch->getLocation());
 	_player->walkTo(pos);
-	log("HelloWorld::onTouchBegan");
+	log("MainScene::onTouchBegan");
 	return true;
 }

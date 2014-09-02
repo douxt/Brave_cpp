@@ -1,12 +1,12 @@
-#ifndef __HELLOWORLD_SCENE_H__
-#define __HELLOWORLD_SCENE_H__
+#ifndef __MainScene__
+#define __MainScene__
 
 #include "cocos2d.h"
 #include "Player.h"
 
 USING_NS_CC;
 
-class HelloWorld : public cocos2d::Layer
+class MainScene : public cocos2d::Layer
 {
 public:
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
@@ -19,7 +19,7 @@ public:
     void menuCloseCallback(cocos2d::Ref* pSender);
     
     // implement the "static create()" method manually
-    CREATE_FUNC(HelloWorld);
+    CREATE_FUNC(MainScene);
 
 	bool onTouchBegan(Touch* touch, Event* event);
 
@@ -29,4 +29,4 @@ private:
 	EventListenerTouchOneByOne* _listener_touch;
 };
 
-#endif // __HELLOWORLD_SCENE_H__
+#endif // __MainScene__
