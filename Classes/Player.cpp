@@ -132,9 +132,7 @@ void Player::initFSM()
 void Player::onWalk(Vec2 dest)
 {
 	log("onIdle: Enter walk");
-
 	this->stopActionByTag(WALKTO_TAG);
-
 	auto curPos = this->getPosition();
 
 	if(curPos.x > dest.x)

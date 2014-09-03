@@ -32,7 +32,7 @@ FSM* FSM::addState(std::string state, std::function<void()> onEnter)
 		return nullptr;
 	}
 	_states.insert(state);
-	_onEnter.insert(std::pair<std::string, std::function<void()>>(state, onEnter));
+	_onEnters.insert(std::pair<std::string, std::function<void()>>(state, onEnter));
 	return this;
 }
 
@@ -58,8 +58,8 @@ void FSM::changeToState(std::string state)
 		_previousState = _currentState;
 		_currentState = state;
 		cocos2d::log("FSM::changeToState: %s -> %s", _previousState.c_str(), _currentState.c_str());
-		if(_onEnter[state])
-			_onEnter[state]();
+		if(_onEnters[state])
+			_onEnters[state]();
 	}
 	else
 	{
@@ -111,7 +111,7 @@ void FSM::setOnEnter(std::string state, std::function<void()> onEnter)
 {
 	if(isContainState(state))
 	{
-		_onEnter[state] = onEnter;
+		_onEnters[state] = onEnter;
 	}
 	else
 	{
@@ -138,16 +138,10 @@ bool FSM::init()
 
 	//this->doEvent("walk");
 	//this->doEvent("attack");
+	//this->doEvent("eat");
 	//this->doEvent("stop");
 	//this->doEvent("die");
 	//this->doEvent("walk");
-	//this->doEvent("eat");
-
-	//this->changeToState("eating");
-	//this->changeToState("idle");
-	//this->changeToState("walking");
-	//this->changeToState("dead");
-	//this->printState();
 	return true;
 }
 

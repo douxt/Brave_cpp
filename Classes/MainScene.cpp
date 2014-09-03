@@ -55,7 +55,7 @@ bool MainScene::init()
 	_listener_touch->onTouchBegan = CC_CALLBACK_2(MainScene::onTouchBegan,this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
 
-//	auto ff = FSM::create("idle",[](){cocos2d::log("Enter idle");});
+	auto fsm = FSM::create("idle",[](){cocos2d::log("Enter idle");});
     return true;
 }
 
