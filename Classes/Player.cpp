@@ -37,6 +37,8 @@ bool Player::initWithPlayerType(PlayerType type)
 	_animationNames.assign(animationNames, animationNames + 5);
 	//load animation
 	this->addAnimation();
+
+
 	return true;
 }
 
@@ -126,7 +128,7 @@ void Player::walkTo(Vec2 dest)
 	//lambda function
 	auto func = [&]()
 	{
-		this->stopAllActions();
+		this->stopActionByTag(0);
 	};
 	auto callback = CallFunc::create(func);
 	auto seq = Sequence::create(move, callback, nullptr);

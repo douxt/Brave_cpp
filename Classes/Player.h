@@ -4,6 +4,7 @@
 
 USING_NS_CC;
 
+
 class Player : public Sprite
 {
 public:

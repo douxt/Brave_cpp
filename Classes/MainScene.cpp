@@ -1,5 +1,5 @@
 #include "MainScene.h"
-
+#include "FSM.h"
 
 
 Scene* MainScene::createScene()
@@ -54,6 +54,8 @@ bool MainScene::init()
 	_listener_touch = EventListenerTouchOneByOne::create();
 	_listener_touch->onTouchBegan = CC_CALLBACK_2(MainScene::onTouchBegan,this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
+
+	auto ff = fsm::FSM::create();
 
     return true;
 }
