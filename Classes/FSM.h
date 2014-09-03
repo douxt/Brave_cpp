@@ -3,55 +3,37 @@
 
 #include "cocos2d.h"
 
-namespace fsm
+
+class FSM :public cocos2d::Ref
 {
-	class Event
-	{
-	public:
-		std::string name;
-		std::string from;
-		std::string to;
-		Event(std::string name, std::string from, std::string to)
-		{
-			this->name = name;
-			this->from = from;
-			this->to = to;
-		}
-	};
+public:
+	bool init();
+	static FSM* create(std::string state, std::function<void()> onEnter = nullptr);
 
-	class State
-	{
-	public:
-		std::string name;
-		std::function<void()> onEnter;
-		std::function<void()> onExit;
-		State(std::string name)
-		{
-			this->name = name;
-			this->onEnter = [](){};
-			this->onExit = [](){};
-		}
-	};
+	FSM(std::string state, std::function<void()> onEnter = nullptr);
 
-	class FSM :public cocos2d::Ref
-	{
-	public:
-		bool init();
-		CREATE_FUNC(FSM);
+	FSM* addState(std::string state, std::function<void()> onEnter = nullptr);
 
-		FSM(){}
-		void addState(State state);
-//		void addState(std::vector<std::string> states);
-		void printState();
-	private:
-		std::vector<State> _states;
-		std::vector<Event> _events;
-	};
+	FSM* addEvent(std::string eventName, std::string from, std::string to);
 
+	bool isContainState(std::string stateName);
 
+	void printState();
 
+	void doEvent(std::string eventName);
+
+	bool canDoEvent(std::string eventName);
+
+	void setOnEnter(std::string state, std::function<void()> onEnter);
+private:
+	void changeToState(std::string state);
+private:
+	std::set<std::string> _states;
+	std::unordered_map<std::string,std::unordered_map<std::string,std::string>> _events;
+	std::string _currentState;
+	std::string _previousState;
+	std::unordered_map<std::string,std::function<void()>> _onEnter;
 };
-
 
 
 #endif

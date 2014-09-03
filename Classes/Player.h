@@ -1,6 +1,7 @@
 #ifndef __Player__
 #define __Player__
 #include "cocos2d.h"
+#include "FSM.h"
 
 USING_NS_CC;
 
@@ -30,6 +31,12 @@ public:
 	void playAnimationForever(int index);
 
 	void walkTo(Vec2 dest);
+
+	void initFSM();
+
+	void onWalk(Vec2 dest);
+
+	void onExit();
 	
 private:
 	PlayerType _type;  
@@ -38,6 +45,7 @@ private:
 	std::vector<int> _animationFrameNum;
 	std::vector<std::string> _animationNames;
 	float _speed;
+	FSM* _fsm;
 };
 
 #endif

@@ -38,6 +38,7 @@ bool Player::initWithPlayerType(PlayerType type)
 	//load animation
 	this->addAnimation();
 
+	this->initFSM();
 
 	return true;
 }
@@ -110,29 +111,53 @@ void Player::playAnimationForever(int index)
 
 void Player::walkTo(Vec2 dest)
 {
-	//stop current moving action, if any.
+	std::function<void()> onWalk = CC_CALLBACK_0(Player::onWalk, this, dest);
+	_fsm->setOnEnter("walking", onWalk);
+	_fsm->doEvent("walk");
+}
+
+void Player::initFSM()
+{
+	_fsm = FSM::create("idle");
+	_fsm->retain();
+	auto onIdle =[&]()
+	{
+		log("onIdle: Enter idle");
+		this->stopActionByTag(0);
+	};
+
+	_fsm->setOnEnter("idle",onIdle);
+}
+
+void Player::onWalk(Vec2 dest)
+{
+	log("onIdle: Enter walk");
+
 	this->stopActionByTag(WALKTO_TAG);
-	
+
 	auto curPos = this->getPosition();
 
-	//flip when moving backward
 	if(curPos.x > dest.x)
 		this->setFlippedX(true);
 	else
 		this->setFlippedX(false);
 
-	//calculate the time needed to move
 	auto diff = dest - curPos;
 	auto time = diff.getLength()/_speed;
 	auto move = MoveTo::create(time, dest);
-	//lambda function
 	auto func = [&]()
 	{
-		this->stopActionByTag(0);
+		this->_fsm->doEvent("stop");
 	};
 	auto callback = CallFunc::create(func);
 	auto seq = Sequence::create(move, callback, nullptr);
 	seq->setTag(WALKTO_TAG);
 	this->runAction(seq);
 	this->playAnimationForever(0);
+}
+
+void Player::onExit()
+{
+	Sprite::onExit();
+	_fsm->release();
 }
