@@ -22,70 +22,14 @@ bool MainScene::init()
     {
         return false;
     }
-    
-
-	//load frames into cache
+ 	//load frames into cache
 	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("image/role.plist","image/role.pvr.ccz");
 	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("image/ui.plist","image/ui.pvr.ccz");
 
-	//load background
-	Sprite* background = Sprite::create("image/background.png");
-	background->setPosition(VisibleRect::center());
-	this->addChild(background);
-
-	//add player
-	_player = Player::create(Player::PlayerType::PLAYER);
-	_player->setPosition(VisibleRect::left().x + _player->getContentSize().width/2, VisibleRect::top().y/2);
-	this->addChild(_player);
-
-
-	//add enemy1
-	_enemy1 = Player::create(Player::PlayerType::ENEMY1);
-	_enemy1->setPosition(VisibleRect::right().x - _player->getContentSize().width/2, VisibleRect::top().y/2);
-	this->addChild(_enemy1);
-
-	//add enemy2
-	_enemy2 = Player::create(Player::PlayerType::ENEMY2);
-	_enemy2->setPosition(VisibleRect::right().x*2/3 - _player->getContentSize().width/2, VisibleRect::top().y/2);
-	this->addChild(_enemy2);
-	//test animation
-//	_player->playAnimationForever(1);
-	//_enemy1->playAnimationForever(1);
-	//_enemy2->playAnimationForever(1);
-
-	_listener_touch = EventListenerTouchOneByOne::create();
-	_listener_touch->onTouchBegan = CC_CALLBACK_2(MainScene::onTouchBegan,this);
-	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
-
-	_listener_contact = EventListenerPhysicsContact::create();
-	_listener_contact->onContactBegin = CC_CALLBACK_1(MainScene::onContactBegin,this);
-	_listener_contact->onContactSeperate = CC_CALLBACK_1(MainScene::onContactSeperate,this);
-	_eventDispatcher->addEventListenerWithFixedPriority(_listener_contact, 10);
-
-	NotificationCenter::getInstance()->addObserver(this, callfuncO_selector(MainScene::clickEnemy),"clickEnemy",nullptr);
-
-//	auto fsm = FSM::create("idle",[](){cocos2d::log("Enter idle");});
-
-	_progress = Progress::create("player-progress-bg.png","player-progress-fill.png");
-	_progress->setPosition(VisibleRect::left().x + _progress->getContentSize().width/2, VisibleRect::top().y - _progress->getContentSize().height/2);
-	this->addChild(_progress);
-
-	auto pauseItem = CustomTool::createMenuItemImage("pause1.png", "pause2.png", CC_CALLBACK_1(MainScene::onTouchPause,this));
-	pauseItem->setTag(1);
-	pauseItem->setPosition(VisibleRect::right().x - pauseItem->getContentSize().width/2, 
-							VisibleRect::top().y - pauseItem->getContentSize().height/2);
-
-	auto debugItem = MenuItemImage::create(
-                                        "CloseNormal.png",
-                                        "CloseSelected.png",
-										CC_CALLBACK_1(MainScene::toggleDebug, this));
-    debugItem->setScale(2.0);
-	debugItem->setPosition(Vec2(VisibleRect::right().x - debugItem->getContentSize().width - pauseItem->getContentSize().width ,
-		VisibleRect::top().y - debugItem->getContentSize().height));
-
-	_menu = Menu::create(pauseItem, debugItem, NULL);
-	_menu->setPosition(0,0);
-	this->addChild(_menu);
+	addRoles();
+	addUI();
+	addListener();
+	addObserver();
 
     return true;
 }
@@ -110,18 +54,14 @@ bool MainScene::onTouchBegan(Touch* touch, Event* event)
 
 void MainScene::onTouchPause(Ref* sender)
 {
-	_player->pause();
-	_enemy1->pause();
-	_enemy2->pause();
+	Director::getInstance()->pause();
 	auto layer = PauseLayer::create();
 	this->addChild(layer,100);
 }
 
 void MainScene::onTouchResume()
 {
-	_player->resume();
-	_enemy1->resume();
-	_enemy2->resume();
+	Director::getInstance()->resume();
 }
 
 void MainScene::toggleDebug(Ref* pSender)
@@ -190,11 +130,132 @@ void MainScene::clickEnemy(Ref* obj)
 	}
 	if(enemy->isCanAttack())
 	{
-		_player->attack();
-		enemy->beHit(_player->getAttack());
+		if(_player->getState() != "attacking")
+		{
+			_player->attack();
+			enemy->beHit(_player->getAttack());
+		}
+
 	}	
 	else
 	{
 		_player->walkTo(enemy->getPosition());
 	}
+}
+
+void MainScene::addRoles()
+{
+	//add player
+	_player = Player::create(Player::PlayerType::PLAYER);
+	_player->setPosition(VisibleRect::left().x + _player->getContentSize().width/2, VisibleRect::top().y/2);
+	this->addChild(_player,10);
+	addEnemy();
+}
+
+void MainScene::addEnemy()
+{
+	//add enemy1
+	_enemy1 = Player::create(Player::PlayerType::ENEMY1);
+	_enemy1->setPosition(VisibleRect::right().x - _player->getContentSize().width/2, VisibleRect::top().y/2);
+	this->addChild(_enemy1,10);
+	_enemys.pushBack(_enemy1);
+	//add enemy2
+	_enemy2 = Player::create(Player::PlayerType::ENEMY2);
+	_enemy2->setPosition(VisibleRect::right().x*2/3 - _player->getContentSize().width/2, VisibleRect::top().y/2);
+	this->addChild(_enemy2,10);
+	_enemys.pushBack(_enemy2);
+}
+
+void MainScene::addUI()
+{
+	//backgound setup
+	_background = Background::create();
+	_background->setPosition(0,0);
+	this->addChild(_background);
+
+	_progress = Progress::create("player-progress-bg.png","player-progress-fill.png");
+	_progress->setPosition(VisibleRect::left().x + _progress->getContentSize().width/2, VisibleRect::top().y - _progress->getContentSize().height/2);
+	this->addChild(_progress);
+
+	auto pauseItem = CustomTool::createMenuItemImage("pause1.png", "pause2.png", CC_CALLBACK_1(MainScene::onTouchPause,this));
+	pauseItem->setTag(1);
+	pauseItem->setPosition(VisibleRect::right().x - pauseItem->getContentSize().width/2, 
+							VisibleRect::top().y - pauseItem->getContentSize().height/2);
+
+	auto debugItem = MenuItemImage::create(
+                                        "CloseNormal.png",
+                                        "CloseSelected.png",
+										CC_CALLBACK_1(MainScene::toggleDebug, this));
+    debugItem->setScale(2.0);
+	debugItem->setPosition(Vec2(VisibleRect::right().x - debugItem->getContentSize().width - pauseItem->getContentSize().width ,
+		VisibleRect::top().y - debugItem->getContentSize().height));
+
+	auto goItem = CustomTool::createMenuItemImage("go.png", "go.png", CC_CALLBACK_1(MainScene::gotoNextLevel,this));
+	goItem->setVisible(false);
+	goItem->setTag(2);
+	goItem->setPosition(VisibleRect::right().x - goItem->getContentSize().width/2, VisibleRect::center().y);
+	_menu = Menu::create(pauseItem, debugItem, goItem, NULL);
+	_menu->setPosition(0,0);
+	this->addChild(_menu, 20);
+
+}
+
+void MainScene::addListener()
+{
+	_listener_touch = EventListenerTouchOneByOne::create();
+	_listener_touch->onTouchBegan = CC_CALLBACK_2(MainScene::onTouchBegan,this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
+
+	_listener_contact = EventListenerPhysicsContact::create();
+	_listener_contact->onContactBegin = CC_CALLBACK_1(MainScene::onContactBegin,this);
+	_listener_contact->onContactSeperate = CC_CALLBACK_1(MainScene::onContactSeperate,this);
+	_eventDispatcher->addEventListenerWithFixedPriority(_listener_contact, 10);
+}
+
+void MainScene::addObserver()
+{
+
+	NotificationCenter::getInstance()->addObserver(this, callfuncO_selector(MainScene::clickEnemy),"clickEnemy",nullptr);
+	NotificationCenter::getInstance()->addObserver(this, callfuncO_selector(MainScene::enemyDead),"enemyDead",nullptr);
+	NotificationCenter::getInstance()->addObserver(this, callfuncO_selector(MainScene::backgroundMoveEnd),"backgroundMoveEnd",nullptr);
+}
+
+
+void MainScene::onExit()
+{
+	Layer::onExit();
+	_eventDispatcher->removeEventListener(_listener_touch);
+	_eventDispatcher->removeEventListener(_listener_contact);
+	NotificationCenter::getInstance()->removeAllObservers(this);
+}
+
+void MainScene::gotoNextLevel(Ref* obj)
+{
+	auto goItem = this->_menu->getChildByTag(2);
+	goItem->setVisible(false);
+	goItem->stopAllActions();
+
+	_background->move("left",_player);
+}
+
+void MainScene::enemyDead(Ref* obj)
+{
+	auto player= (Player*)obj;
+	_enemys.eraseObject(player,true);
+	log("onEnemyDead:%d", _enemys.size());
+	if(_enemys.size() == 0)
+		showNextLevelItem();
+}
+
+void MainScene::backgroundMoveEnd(Ref* obj)
+{
+	addEnemy();
+	log("adding enemy...");
+}
+
+void MainScene::showNextLevelItem()
+{
+	auto goItem = this->_menu->getChildByTag(2);
+	goItem->setVisible(true);
+	goItem->runAction(RepeatForever::create(Blink::create(1,1)));
 }

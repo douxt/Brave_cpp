@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "Player.h"
 #include "Progress.h"
+#include "Background.h"
 
 USING_NS_CC;
 
@@ -38,7 +39,25 @@ public:
 
 	void clickEnemy(Ref* obj);
 
+	void addRoles();
 
+	void addUI();
+
+	void addListener();
+
+	void addObserver();
+
+	void onExit();
+
+	void gotoNextLevel(Ref* obj);
+
+	void enemyDead(Ref* obj);
+
+	void backgroundMoveEnd(Ref* obj);
+
+	void showNextLevelItem();
+
+	void addEnemy();
 private:
 	Player* _player;
 	Player* _enemy1;
@@ -48,6 +67,8 @@ private:
 	Progress* _progress;
 	Menu* _menu;
 	PhysicsWorld* _world;
+	Background* _background;
+	Vector<Player*> _enemys;
 };
 
 #endif // __MainScene__

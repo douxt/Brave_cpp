@@ -26,6 +26,8 @@ public:
 	bool canDoEvent(std::string eventName);
 	//set the onEnter callback for a specified state
 	void setOnEnter(std::string state, std::function<void()> onEnter);
+
+	std::string getState(){return _currentState;}
 private:
 	//change state and run callback.
 	void changeToState(std::string state);

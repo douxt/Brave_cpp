@@ -1,7 +1,7 @@
 #include "PauseLayer.h"
 #include "VisibleRect.h"
 #include "CustomTool.h"
-//#include "StartScene.h"
+#include "StartScene.h"
 #include "MainScene.h"
 
 bool PauseLayer::init()
@@ -53,15 +53,19 @@ void PauseLayer::addTouch()
 void PauseLayer::home(Ref* obj)
 {
 	_eventDispatcher->removeEventListener(_listener);
+	auto main = (MainScene*)this->getParent();
+	main->onTouchResume();
 	this->removeFromParentAndCleanup(true);
-	//auto start = StartLayer::createScene();
-	//Director::getInstance()->replaceScene(start);
+
+	auto start = StartScene::createScene();
+	Director::getInstance()->replaceScene(start);
 }
 
 void PauseLayer::back(Ref* obj)
 {
 	_eventDispatcher->removeEventListener(_listener);
 	auto main = (MainScene*)this->getParent();
-	this->removeFromParentAndCleanup(true);
 	main->onTouchResume();
+	this->removeFromParentAndCleanup(true);
+
 }

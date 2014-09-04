@@ -127,7 +127,7 @@ bool FSM::init()
 		->addState("beingHit",[](){cocos2d::log("Enter beingHit");});
 
 	this->addEvent("walk","idle","walking")
-		->addEvent("walk","attacking","walking")
+//		->addEvent("walk","attacking","walking")
 		->addEvent("attack","idle","attacking")
 		->addEvent("attack","walking", "attacking")
 		->addEvent("die","idle","dead")

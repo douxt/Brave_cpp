@@ -200,7 +200,8 @@ void Player::initFSM()
 		auto func = [&]()
 		{
 			log("A charactor died!");
-			NotificationCenter::getInstance()->postNotification("ENEMY_DEAD",nullptr);
+			if(_type != PLAYER)
+				NotificationCenter::getInstance()->postNotification("enemyDead",this);
 			this->removeFromParentAndCleanup(true);
 		};
 		auto blink = Blink::create(3,5);
@@ -251,6 +252,7 @@ void Player::onExit()
 {
 	Sprite::onExit();
 	_fsm->release();
+	_eventDispatcher->removeEventListener(_listener);
 }
 
 bool Player::onTouch(Touch* touch, Event* event)
@@ -293,3 +295,4 @@ void Player::beHit(int attack)
 		_fsm->doEvent("beHit");
 	}
 }
+

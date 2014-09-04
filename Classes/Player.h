@@ -64,6 +64,9 @@ public:
 
 	int getAttack(){return _attack;}
 
+	std::string getState(){return _fsm->getState();};
+
+
 private:
 	PlayerType _type;  
 	std::string _name;
