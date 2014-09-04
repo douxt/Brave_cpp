@@ -3,6 +3,7 @@
 
 #include "cocos2d.h"
 #include "Player.h"
+#include "Progress.h"
 
 USING_NS_CC;
 
@@ -23,10 +24,16 @@ public:
 
 	bool onTouchBegan(Touch* touch, Event* event);
 
+	void onTouchPause(Ref* sender);
+	void onTouchResume();
+
 private:
 	Player* _player;
 	Player* _enemy1;
+	Player* _enemy2;
 	EventListenerTouchOneByOne* _listener_touch;
+	Progress* _progress;
+	Menu* _menu;
 };
 
 #endif // __MainScene__

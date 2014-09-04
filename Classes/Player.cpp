@@ -6,6 +6,7 @@ bool Player::initWithPlayerType(PlayerType type)
 	std::string sfName = "";
 	_type = type;
 	_speed = 100;
+	_isShowBar = true;
 	int animationFrameNum[5] ={4, 4, 4, 2, 4};
 	int animationFrameNum2[5] ={3, 3, 3, 2, 0};
 
@@ -18,6 +19,7 @@ bool Player::initWithPlayerType(PlayerType type)
 		_animationNum = 5;
 		_animationFrameNum.assign(animationFrameNum, animationFrameNum + 5);
 		_speed = 125;
+		_isShowBar = false;
 		break;
 	case PlayerType::ENEMY1:
 		sfName = "enemy1-1-1.png";
@@ -39,6 +41,16 @@ bool Player::initWithPlayerType(PlayerType type)
 	this->addAnimation();
 
 	this->initFSM();
+
+	auto size = this->getContentSize();
+
+	_progress = Progress::create("small-enemy-progress-bg.png","small-enemy-progress-fill.png");
+	_progress->setPosition( size.width*2/3, size.height + _progress->getContentSize().height/2);
+	this->addChild(_progress);
+	if(!_isShowBar)
+	{
+		_progress->setVisible(false);
+	}
 
 	return true;
 }

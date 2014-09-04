@@ -2,6 +2,7 @@
 #define __Player__
 #include "cocos2d.h"
 #include "FSM.h"
+#include "Progress.h"
 
 USING_NS_CC;
 
@@ -46,6 +47,8 @@ private:
 	std::vector<std::string> _animationNames;
 	float _speed;
 	FSM* _fsm;
+	Progress* _progress;
+	bool _isShowBar;
 };
 
 #endif

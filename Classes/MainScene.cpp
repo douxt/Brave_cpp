@@ -1,6 +1,8 @@
 #include "MainScene.h"
 #include "FSM.h"
-
+#include "VisibleRect.h"
+#include "CustomTool.h"
+#include "PauseLayer.h"
 
 Scene* MainScene::createScene()
 {
@@ -25,37 +27,55 @@ bool MainScene::init()
         return false;
     }
     
-    Size visibleSize = Director::getInstance()->getVisibleSize();
-    Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
 	//load frames into cache
 	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("image/role.plist","image/role.pvr.ccz");
+	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("image/ui.plist","image/ui.pvr.ccz");
 
 	//load background
 	Sprite* background = Sprite::create("image/background.png");
-	background->setPosition(origin + visibleSize/2);
+	background->setPosition(VisibleRect::center());
 	this->addChild(background);
 
 	//add player
 	_player = Player::create(Player::PlayerType::PLAYER);
-	_player->setPosition(origin.x + _player->getContentSize().width/2, origin.y + visibleSize.height/2);
+	_player->setPosition(VisibleRect::left().x + _player->getContentSize().width/2, VisibleRect::top().y/2);
 	this->addChild(_player);
 
 
 	//add enemy1
 	_enemy1 = Player::create(Player::PlayerType::ENEMY1);
-	_enemy1->setPosition(origin.x + visibleSize.width - _player->getContentSize().width/2, origin.y + visibleSize.height/2);
+	_enemy1->setPosition(VisibleRect::right().x - _player->getContentSize().width/2, VisibleRect::top().y/2);
 	this->addChild(_enemy1);
 
+	//add enemy2
+	_enemy2 = Player::create(Player::PlayerType::ENEMY2);
+	_enemy2->setPosition(VisibleRect::right().x*2/3 - _player->getContentSize().width/2, VisibleRect::top().y/2);
+	this->addChild(_enemy2);
 	//test animation
 //	_player->playAnimationForever(1);
 	_enemy1->playAnimationForever(1);
+	_enemy2->playAnimationForever(1);
 
 	_listener_touch = EventListenerTouchOneByOne::create();
 	_listener_touch->onTouchBegan = CC_CALLBACK_2(MainScene::onTouchBegan,this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener_touch, this);
 
-	auto fsm = FSM::create("idle",[](){cocos2d::log("Enter idle");});
+//	auto fsm = FSM::create("idle",[](){cocos2d::log("Enter idle");});
+
+	_progress = Progress::create("player-progress-bg.png","player-progress-fill.png");
+	_progress->setPosition(VisibleRect::left().x + _progress->getContentSize().width/2, VisibleRect::top().y - _progress->getContentSize().height/2);
+	this->addChild(_progress);
+
+	auto pauseItem = CustomTool::createMenuItemImage("pause1.png", "pause2.png", CC_CALLBACK_1(MainScene::onTouchPause,this));
+	pauseItem->setTag(1);
+	pauseItem->setPosition(VisibleRect::right().x - pauseItem->getContentSize().width/2, 
+							VisibleRect::top().y - pauseItem->getContentSize().height/2);
+
+	_menu = Menu::create(pauseItem, NULL);
+	_menu->setPosition(0,0);
+	this->addChild(_menu, 20);
+
     return true;
 }
 
@@ -80,4 +100,20 @@ bool MainScene::onTouchBegan(Touch* touch, Event* event)
 	_player->walkTo(pos);
 //	log("MainScene::onTouchBegan");
 	return true;
+}
+
+void MainScene::onTouchPause(Ref* sender)
+{
+	_player->pause();
+	_enemy1->pause();
+	_enemy2->pause();
+	auto layer = PauseLayer::create();
+	this->addChild(layer);
+}
+
+void MainScene::onTouchResume()
+{
+	_player->resume();
+	_enemy1->resume();
+	_enemy2->resume();
 }
