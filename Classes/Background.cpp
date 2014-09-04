@@ -1,6 +1,5 @@
 #include "Background.h"
-#include <string>
-
+#include "VisibleRect.h"
 
 
 bool Background::init()
@@ -8,10 +7,8 @@ bool Background::init()
 	_spriteA = Sprite::create("image/background.png");
 	_spriteB = Sprite::create("image/background2.png");
 	
-	auto origin = Director::getInstance()->getVisibleOrigin();
-	auto vSize = Director::getInstance()->getVisibleSize();
-	_spriteA->setPosition(origin + Vec2(vSize.width/2, vSize.height/2));
-	_spriteB->setPosition(origin + Vec2(vSize.width/2, vSize.height/2) + Vec2(vSize.width, 0));
+	_spriteA->setPosition(VisibleRect::center());
+	_spriteB->setPosition(VisibleRect::center() + VisibleRect::right() - VisibleRect::left());
 	this->addChild(_spriteA,-10);
 	this->addChild(_spriteB,-20);
 
@@ -50,15 +47,15 @@ void Background::onMoveEnd()
 {
 	_isMoving = false;
 	auto ax = _spriteA->getPosition();
-	auto origin = Director::getInstance()->getVisibleOrigin();
-	auto vSize = Director::getInstance()->getVisibleSize();
-	if(ax.x < origin.x)
+	auto pos = VisibleRect::center() + VisibleRect::right() - VisibleRect::left();
+
+	if(ax.x < VisibleRect::left().x)
 	{
-		_spriteA->setPosition( Vec2(vSize.width/2, vSize.height/2) + Vec2(vSize.width, 0));
+		_spriteA->setPosition(pos);
 	}		
 	else
 	{
-		_spriteB->setPosition( Vec2(vSize.width/2, vSize.height/2) + Vec2(vSize.width, 0));
+		_spriteB->setPosition(pos);
 	}
 		
 

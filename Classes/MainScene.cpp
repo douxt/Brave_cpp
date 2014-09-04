@@ -30,7 +30,6 @@ bool MainScene::init()
 	addUI();
 	addListener();
 	addObserver();
-
     return true;
 }
 

@@ -56,7 +56,6 @@ void PauseLayer::home(Ref* obj)
 	auto main = (MainScene*)this->getParent();
 	main->onTouchResume();
 	this->removeFromParentAndCleanup(true);
-
 	auto start = StartScene::createScene();
 	Director::getInstance()->replaceScene(start);
 }
