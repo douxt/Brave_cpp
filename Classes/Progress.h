@@ -1,7 +1,6 @@
 #ifndef __Progress__
 #define __Progress__
 #include "cocos2d.h"
-
 USING_NS_CC;
 
 class Progress : public Sprite
@@ -21,6 +20,4 @@ public:
 private:
 	ProgressTimer* _fill;
 };
-
-
 #endif

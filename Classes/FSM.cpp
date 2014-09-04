@@ -123,7 +123,8 @@ bool FSM::init()
 {
 	this->addState("walking",[](){cocos2d::log("Enter walking");})
 		->addState("attacking",[](){cocos2d::log("Enter attacking");})
-		->addState("dead",[](){cocos2d::log("Enter dead");});
+		->addState("dead",[](){cocos2d::log("Enter dead");})
+		->addState("beingHit",[](){cocos2d::log("Enter beingHit");});
 
 	this->addEvent("walk","idle","walking")
 		->addEvent("walk","attacking","walking")
@@ -134,14 +135,14 @@ bool FSM::init()
 		->addEvent("die","attacking","dead")
 		->addEvent("stop","walking","idle")
 		->addEvent("stop","attacking","idle")
-		->addEvent("walk","walking","walking");
+		->addEvent("walk","walking","walking")
+		->addEvent("beHit","idle","beingHit")
+		->addEvent("beHit","walking","beingHit")
+//		->addEvent("beHit","attacking","beingHit") can attacking be stoped by beHit?
+		->addEvent("die","beingHit","dead")
+		->addEvent("stop","beingHit","idle")
+		->addEvent("stop","idle","idle");
 
-	//this->doEvent("walk");
-	//this->doEvent("attack");
-	//this->doEvent("eat");
-	//this->doEvent("stop");
-	//this->doEvent("die");
-	//this->doEvent("walk");
 	return true;
 }
 

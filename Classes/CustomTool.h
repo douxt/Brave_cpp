@@ -1,6 +1,7 @@
 #ifndef __CustomTool__
 #define __CustomTool__
 #include "cocos2d.h"
+
 USING_NS_CC;
 
 class CustomTool : public Ref

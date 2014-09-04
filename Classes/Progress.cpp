@@ -1,6 +1,5 @@
 #include "Progress.h"
 
-
 bool Progress::init(const char* background, const char* fillname)
 {
 	this->initWithSpriteFrameName(background);

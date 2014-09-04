@@ -22,6 +22,15 @@ public:
 		WALKTO_TAG =100
 	};
 
+	enum AnimationType
+	{
+		WALKING = 0,
+		ATTACKING,
+		DEAD,
+		BEINGHIT,
+		SKILL
+	};
+
 	bool initWithPlayerType(PlayerType type);
 
 	static Player* create(PlayerType type);
@@ -38,7 +47,23 @@ public:
 	void onWalk(Vec2 dest);
 
 	void onExit();
+
+	PlayerType getPlayerType(){return _type;}
+
+	void setCanAttack(bool canAttack){_isCanAttack=canAttack;}
 	
+	bool isCanAttack(){return _isCanAttack;}
+
+	Animate* getAnimateByType(AnimationType type);
+
+	bool onTouch(Touch* touch, Event* event);
+
+	void attack();
+
+	void beHit(int attack);
+
+	int getAttack(){return _attack;}
+
 private:
 	PlayerType _type;  
 	std::string _name;
@@ -49,6 +74,11 @@ private:
 	FSM* _fsm;
 	Progress* _progress;
 	bool _isShowBar;
+	bool _isCanAttack;
+	EventListenerTouchOneByOne* _listener;
+	int _health;
+	int _maxHealth;
+	int _attack;
 };
 
 #endif
