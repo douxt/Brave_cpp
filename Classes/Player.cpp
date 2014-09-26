@@ -10,10 +10,17 @@ bool Player::initWithPlayerType(PlayerType type)
 	_isCanAttack =false;
 	_health = 100;
 	_maxHealth =100;
-	_attack = 24;
+	_attack = 34;
+	_flip = false;
 	int animationFrameNum[5] ={4, 4, 4, 2, 4};
 	int animationFrameNum2[5] ={3, 3, 3, 2, 0};
 
+
+	auto size = this->getContentSize();
+	auto body = PhysicsBody::createBox(Size(size.width/2, size.height));
+	body->setCategoryBitmask(2);
+	body->setCollisionBitmask(0);
+	body->setContactTestBitmask(1);
 	//setup according to PlayerType
 	switch(type)
 	{
@@ -24,18 +31,27 @@ bool Player::initWithPlayerType(PlayerType type)
 		_animationFrameNum.assign(animationFrameNum, animationFrameNum + 5);
 		_speed = 125;
 		_isShowBar = false;
+		body->setCategoryBitmask(1);
+		body->setContactTestBitmask(2);
+		_flip = true;
+//		this->setAnchorPoint(Vec2(0, 0));
+
 		break;
 	case PlayerType::ENEMY1:
 		sfName = "enemy1-1-1.png";
 		_name = "enemy1";
 		_animationNum = 4;
 		_animationFrameNum.assign(animationFrameNum2, animationFrameNum2 + 5);
+//		this->setAnchorPoint(Vec2(200, 72));
+		_attack = 8;
 		break;
 	case PlayerType::ENEMY2:
 		sfName = "enemy2-1-1.png";
 		_name = "enemy2";
 		_animationNum = 4;
 		_animationFrameNum.assign(animationFrameNum2, animationFrameNum2 + 5);
+//		this->setAnchorPoint(Vec2(200, 75));
+		_attack = 8;
 		break;
 	}
 	this->initWithSpriteFrameName(sfName);
@@ -44,17 +60,16 @@ bool Player::initWithPlayerType(PlayerType type)
 	//load animation
 	this->addAnimation();
 
-	auto size = this->getContentSize();
-	auto body = PhysicsBody::createBox(Size(size.width/2, size.height));
-	body->setCollisionBitmask(0);
-	body->setContactTestBitmask(1);
+
+
 	this->setPhysicsBody(body);
 
 	this->initFSM();
 
 
 	_progress = Progress::create("small-enemy-progress-bg.png","small-enemy-progress-fill.png");
-	_progress->setPosition( size.width*2/3, size.height + _progress->getContentSize().height/2);
+//	_progress->setPosition( size.width*2/3, size.height + _progress->getContentSize().height/2);
+	_progress->setPosition( 200, 200);
 	this->addChild(_progress);
 	if(!_isShowBar)
 	{
@@ -200,8 +215,7 @@ void Player::initFSM()
 		auto func = [&]()
 		{
 			log("A charactor died!");
-			if(_type != PLAYER)
-				NotificationCenter::getInstance()->postNotification("enemyDead",this);
+			NotificationCenter::getInstance()->postNotification("enemyDead",this);
 			this->removeFromParentAndCleanup(true);
 		};
 		auto blink = Blink::create(3,5);
@@ -230,9 +244,9 @@ void Player::onWalk(Vec2 dest)
 	auto curPos = this->getPosition();
 
 	if(curPos.x > dest.x)
-		this->setFlippedX(true);
+		this->setFlippedX(_flip);
 	else
-		this->setFlippedX(false);
+		this->setFlippedX(!_flip);
 
 	auto diff = dest - curPos;
 	auto time = diff.getLength()/_speed;
@@ -257,11 +271,12 @@ void Player::onExit()
 
 bool Player::onTouch(Touch* touch, Event* event)
 {
+	auto pos = this->convertToNodeSpace(touch->getLocation());
+	log("Touching: %f, %f...", pos.x, pos.y);
 	if(_type == PLAYER)
 		return false;
 
 	log("Player: touch detected!");
-	auto pos = this->convertToNodeSpace(touch->getLocation());
 	auto size = this->getContentSize();
 	auto rect = Rect(size.width/2, 0, size.width, size.height);
 	if(rect.containsPoint(pos))
@@ -287,6 +302,10 @@ void Player::beHit(int attack)
 		_health = 0;
 		this->_progress->setProgress((float)_health/_maxHealth*100);
 		_fsm->doEvent("die");
+		if(_type == PlayerType::PLAYER)
+		{
+
+		}
 		return;
 	}
 	else
@@ -296,3 +315,17 @@ void Player::beHit(int attack)
 	}
 }
 
+void Player::addAttacker(Player* attacker)
+{
+	_attackers.pushBack(attacker);
+}
+
+void Player::removeAttacker(Player* attacker)
+{
+	_attackers.eraseObject(attacker);
+}
+
+bool Player::isInRange(Player* enemy)
+{
+	return _attackers.contains(enemy);
+}

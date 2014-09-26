@@ -66,6 +66,14 @@ public:
 
 	std::string getState(){return _fsm->getState();};
 
+	void addAttacker(Player* attacker);
+
+	void removeAttacker(Player* attacker);
+
+	bool isInRange(Player* enemy);
+
+	CC_SYNTHESIZE(int, _health, Health);
+	CC_SYNTHESIZE(int, _maxHealth, MaxHealth);
 
 private:
 	PlayerType _type;  
@@ -79,9 +87,11 @@ private:
 	bool _isShowBar;
 	bool _isCanAttack;
 	EventListenerTouchOneByOne* _listener;
-	int _health;
-	int _maxHealth;
+	//int _health;
+	//int _maxHealth;
 	int _attack;
+	Vector<Player*> _attackers;
+	bool _flip;
 };
 
 #endif

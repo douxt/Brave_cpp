@@ -57,7 +57,13 @@ public:
 
 	void showNextLevelItem();
 
+	void enemyMove(float dt);
+
 	void addEnemy();
+
+	void updateHealth();
+
+	void update(float dt);
 private:
 	Player* _player;
 	Player* _enemy1;

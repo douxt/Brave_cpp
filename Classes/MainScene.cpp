@@ -3,6 +3,7 @@
 #include "VisibleRect.h"
 #include "CustomTool.h"
 #include "PauseLayer.h"
+#include "GameOverLayer.h"
 
 Scene* MainScene::createScene()
 {
@@ -30,6 +31,10 @@ bool MainScene::init()
 	addUI();
 	addListener();
 	addObserver();
+	this->schedule(schedule_selector(MainScene::enemyMove), 1);
+
+	this->scheduleUpdate();
+
     return true;
 }
 
@@ -46,7 +51,11 @@ void MainScene::onEnter()
 bool MainScene::onTouchBegan(Touch* touch, Event* event)
 {
 	Vec2 pos = this->convertToNodeSpace(touch->getLocation());
-	_player->walkTo(pos);
+	if(_player)
+	{
+		_player->walkTo(pos);
+	}
+	
 //	log("MainScene::onTouchBegan");
 	return true;
 }
@@ -55,7 +64,7 @@ void MainScene::onTouchPause(Ref* sender)
 {
 	Director::getInstance()->pause();
 	auto layer = PauseLayer::create();
-	this->addChild(layer,100);
+	this->addChild(layer,10000);
 }
 
 void MainScene::onTouchResume()
@@ -78,8 +87,8 @@ void MainScene::toggleDebug(Ref* pSender)
 
 bool MainScene::onContactBegin(const PhysicsContact& contact)
 {
-	auto playerA = (Player*)contact.getShapeA()->getBody()->getNode();
-	auto playerB = (Player*)contact.getShapeB()->getBody()->getNode();
+	auto playerA = dynamic_cast<Player*>(contact.getShapeA()->getBody()->getNode());
+	auto playerB = dynamic_cast<Player*>(contact.getShapeB()->getBody()->getNode());
 	auto typeA = playerA->getPlayerType();
 	auto typeB = playerB->getPlayerType(); 
 	if(typeA == Player::PlayerType::PLAYER)
@@ -87,12 +96,14 @@ bool MainScene::onContactBegin(const PhysicsContact& contact)
 		// only one player so ShapeB must belong to an enemy		
 		log("contact enemy!");
 		playerB->setCanAttack(true);
+		playerA->addAttacker(playerB);
 	}
 	if(typeB == Player::PlayerType::PLAYER)
 	{
 		// only one player so ShapeA must belong to an enemy		
 		log("contact enemy!");
 		playerA->setCanAttack(true);
+		playerB->addAttacker(playerA);
 	}
 	return true;
 }
@@ -108,6 +119,7 @@ void MainScene::onContactSeperate(const PhysicsContact& contact)
 		// only one player so ShapeB must belong to an enemy		
 		log("leave enemy!");
 		playerB->setCanAttack(false);
+		playerA->removeAttacker(playerB);
 	}
 
 	if(typeB == Player::PlayerType::PLAYER)
@@ -115,6 +127,7 @@ void MainScene::onContactSeperate(const PhysicsContact& contact)
 		// only one player so ShapeA must belong to an enemy		
 		log("leave enemy!");
 		playerA->setCanAttack(false);
+		playerB->removeAttacker(playerA);
 	}
 }
 
@@ -125,6 +138,11 @@ void MainScene::clickEnemy(Ref* obj)
 	if(enemy == nullptr)
 	{
 		log("enemy null");
+		return;
+	}
+	if(_player == nullptr)
+	{
+		log("player null");
 		return;
 	}
 	if(enemy->isCanAttack())
@@ -170,7 +188,7 @@ void MainScene::addUI()
 	//backgound setup
 	_background = Background::create();
 	_background->setPosition(0,0);
-	this->addChild(_background);
+	this->addChild(_background, -100);
 
 	_progress = Progress::create("player-progress-bg.png","player-progress-fill.png");
 	_progress->setPosition(VisibleRect::left().x + _progress->getContentSize().width/2, VisibleRect::top().y - _progress->getContentSize().height/2);
@@ -240,10 +258,21 @@ void MainScene::gotoNextLevel(Ref* obj)
 void MainScene::enemyDead(Ref* obj)
 {
 	auto player= (Player*)obj;
-	_enemys.eraseObject(player,true);
-	log("onEnemyDead:%d", _enemys.size());
-	if(_enemys.size() == 0)
-		showNextLevelItem();
+	if(Player::PlayerType::PLAYER == player->getPlayerType())
+	{
+		_player = nullptr;
+		auto layer = GameOverLayer::create();
+		this->addChild(layer,10000);
+	}
+	else
+	{
+		_enemys.eraseObject(player,true);
+		log("onEnemyDead:%d", _enemys.size());
+		if(_enemys.size() == 0)
+			showNextLevelItem();
+	}
+
+
 }
 
 void MainScene::backgroundMoveEnd(Ref* obj)
@@ -257,4 +286,47 @@ void MainScene::showNextLevelItem()
 	auto goItem = this->_menu->getChildByTag(2);
 	goItem->setVisible(true);
 	goItem->runAction(RepeatForever::create(Blink::create(1,1)));
+}
+
+void MainScene::enemyMove(float dt)
+{
+	for(auto enemy: _enemys)
+	{
+		if("dead" != enemy->getState()&&_player && "dead" != _player->getState())
+		{
+			if(_player->isInRange(enemy))
+			{
+				if("attacking" != enemy->getState())
+				{
+					enemy->attack();
+					_player->beHit(enemy->getAttack());
+					this->updateHealth();
+				}
+			}else
+			{
+				enemy->walkTo(_player->getPosition());
+			}
+		}
+	}
+
+}
+
+void MainScene::updateHealth()
+{
+	if(_player)
+	{
+		auto health = _player->getHealth();
+		auto maxHealth = _player->getMaxHealth();
+		_progress->setProgress((float)health/maxHealth*100.0);
+	}
+}
+
+void MainScene::update(float dt)
+{
+	if(_player)
+		_player->setZOrder(VisibleRect::top().y - _player->getPosition().y);
+	for(auto enemy : _enemys)
+	{
+		enemy->setZOrder(VisibleRect::top().y - enemy->getPosition().y);
+	}
 }
