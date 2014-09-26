@@ -10,17 +10,15 @@ bool Player::initWithPlayerType(PlayerType type)
 	_isCanAttack =false;
 	_health = 100;
 	_maxHealth =100;
-	_attack = 34;
+	_attack = 100;
 	_flip = false;
 	int animationFrameNum[5] ={4, 4, 4, 2, 4};
 	int animationFrameNum2[5] ={3, 3, 3, 2, 0};
-
+	int animationFrameNum3[5] ={1, 5, 4, 2, 0};
 
 	auto size = this->getContentSize();
-	auto body = PhysicsBody::createBox(Size(size.width/2, size.height));
-	body->setCategoryBitmask(2);
-	body->setCollisionBitmask(0);
-	body->setContactTestBitmask(1);
+	auto body = PhysicsBody::create();
+
 	//setup according to PlayerType
 	switch(type)
 	{
@@ -31,8 +29,7 @@ bool Player::initWithPlayerType(PlayerType type)
 		_animationFrameNum.assign(animationFrameNum, animationFrameNum + 5);
 		_speed = 125;
 		_isShowBar = false;
-		body->setCategoryBitmask(1);
-		body->setContactTestBitmask(2);
+
 		_flip = true;
 //		this->setAnchorPoint(Vec2(0, 0));
 
@@ -53,23 +50,49 @@ bool Player::initWithPlayerType(PlayerType type)
 //		this->setAnchorPoint(Vec2(200, 75));
 		_attack = 8;
 		break;
+	case PlayerType::BOSS:
+		sfName = "df1-1-1.png";
+		_name = "df1";
+		_animationNum = 4;
+		_animationFrameNum.assign(animationFrameNum3, animationFrameNum3 + 5);
+//		this->setAnchorPoint(Vec2(200, 75));
+		_attack = 33;
+		break;
 	}
 	this->initWithSpriteFrameName(sfName);
+	//auto sf = SpriteFrameCache::getInstance()->getSpriteFrameByName(sfName);
+	//auto texture = sf->getTexture();
+	//this->initWithTexture(texture, Rect(0, 38, 247, 163));
 	std::string animationNames[] = {"walk", "attack", "dead", "hit", "skill"};
 	_animationNames.assign(animationNames, animationNames + 5);
 	//load animation
 	this->addAnimation();
 
+	size = this->getContentSize();
+	log("size: %f, %f ",size.width, size.height);
+	body->addShape(PhysicsShapeBox::create(Size(size.width/3, size.height/2)));
+	body->setCategoryBitmask(2);
+	body->setCollisionBitmask(0);
+	body->setContactTestBitmask(1);
 
+	_flipped = _flip;
+	if(type == PlayerType::PLAYER)
+	{
+		body->setCategoryBitmask(1);
+		body->setContactTestBitmask(2);
+		_flipped = !_flip;
+	}
 
 	this->setPhysicsBody(body);
+
+
 
 	this->initFSM();
 
 
 	_progress = Progress::create("small-enemy-progress-bg.png","small-enemy-progress-fill.png");
 //	_progress->setPosition( size.width*2/3, size.height + _progress->getContentSize().height/2);
-	_progress->setPosition( 200, 200);
+	_progress->setPosition( 200 , 200);
 	this->addChild(_progress);
 	if(!_isShowBar)
 	{
@@ -119,7 +142,13 @@ void Player::addAnimation()
 		{
 			auto sfName =String::createWithFormat("%s-%d-%d.png",_name.c_str(), i+1, j+1)->getCString();
 //			log(sfName);
-			animation->addSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName(sfName));
+			auto sf = SpriteFrameCache::getInstance()->getSpriteFrameByName(sfName);
+//			auto texture = sf->getTexture();
+//			auto offset = sf->getOffset();
+//			auto rect = sf->getRect();
+//			sf = SpriteFrame::createWithTexture(texture, Rect(0 + rect.getMinX(), 38 + rect.getMinY(), 247, 163), true, offset, Size(247,163)); 
+////			this->initWithTexture(texture, Rect(0, 38, 247, 163));
+			animation->addSpriteFrame(sf);
 		}
 		// put the animation into cache
 		AnimationCache::getInstance()->addAnimation(animation, String::createWithFormat("%s-%s",_name.c_str(), 
@@ -210,6 +239,7 @@ void Player::initFSM()
 
 	auto onDead = [&]()
 	{
+		this->setCanAttack(false);
 		log("onDead: Enter Dead");
 		auto animate = getAnimateByType(DEAD);
 		auto func = [&]()
@@ -221,6 +251,7 @@ void Player::initFSM()
 		auto blink = Blink::create(3,5);
 		auto callback = CallFunc::create(func);
 		auto seq = Sequence::create(animate, blink, callback, nullptr);
+		this->stopAllActions();
 		this->runAction(seq);
 		_progress->setVisible(false);
 	};
@@ -244,9 +275,25 @@ void Player::onWalk(Vec2 dest)
 	auto curPos = this->getPosition();
 
 	if(curPos.x > dest.x)
-		this->setFlippedX(_flip);
+	{
+		if(_flipped != _flip)
+		{
+			this->setFlippedX(_flip);
+			_flipped = _flip;
+			this->setPosition(curPos.x - 88, curPos.y);
+			this->moveProgress(88);
+		}	
+	}
 	else
-		this->setFlippedX(!_flip);
+	{		
+		if(_flipped == _flip)
+		{
+			this->setFlippedX(!_flip);
+			_flipped = !_flip;
+			this->setPosition(curPos.x + 88, curPos.y);
+			this->moveProgress(-88);
+		}	
+	}
 
 	auto diff = dest - curPos;
 	auto time = diff.getLength()/_speed;
@@ -328,4 +375,20 @@ void Player::removeAttacker(Player* attacker)
 bool Player::isInRange(Player* enemy)
 {
 	return _attackers.contains(enemy);
+}
+
+void Player::moveProgress(float dx)
+{
+	auto curPos = _progress->getPosition();
+	_progress->setPosition(curPos.x + dx, curPos.y);
+}
+
+Vec2 Player::getBestAttackPosition(const Vec2& pos)
+{
+	auto curPos = this->getPosition();
+	auto pos1 = curPos + Vec2(50, 0);
+	auto pos2 = curPos - Vec2(50, 0);
+	auto diff1 = pos1 - pos;
+	auto diff2 = pos2 - pos;
+	return diff1.length()>diff2.length()?pos2:pos1;
 }

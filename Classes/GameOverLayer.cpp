@@ -28,6 +28,10 @@ bool GameOverLayer::init()
 	auto menu = Menu::create(homeItem,  NULL);
 	menu->setPosition(VisibleRect::leftBottom());
 
+	_label = LabelTTF::create("","fonts/Marker Felt.ttf",34);
+	_label->setPosition(size.width/2,size.height);
+	background->addChild(_label);
+
 	background->addChild(menu);
 
 
@@ -41,4 +45,9 @@ void GameOverLayer::home(Ref* obj)
 	this->removeFromParentAndCleanup(true);
 	auto start = StartScene::createScene();
 	Director::getInstance()->replaceScene(start);
+}
+
+void GameOverLayer::setText(const std::string& text)
+{
+	_label->setString(text);
 }

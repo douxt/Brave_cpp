@@ -14,7 +14,8 @@ public:
 	{
 		PLAYER,
 		ENEMY1,
-		ENEMY2
+		ENEMY2,
+		BOSS
 	};
 
 	enum ActionTag
@@ -71,6 +72,9 @@ public:
 	void removeAttacker(Player* attacker);
 
 	bool isInRange(Player* enemy);
+	void moveProgress(float dx);
+
+	Vec2 getBestAttackPosition(const Vec2& pos);
 
 	CC_SYNTHESIZE(int, _health, Health);
 	CC_SYNTHESIZE(int, _maxHealth, MaxHealth);
@@ -92,6 +96,7 @@ private:
 	int _attack;
 	Vector<Player*> _attackers;
 	bool _flip;
+	bool _flipped;
 };
 
 #endif

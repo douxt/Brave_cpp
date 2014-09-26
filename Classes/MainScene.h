@@ -60,14 +60,19 @@ public:
 	void enemyMove(float dt);
 
 	void addEnemy();
+	void addEnemyByLevel(int level);
 
 	void updateHealth();
 
 	void update(float dt);
+
+	void initLevel();
+
+	void addOneEnemy(Player::PlayerType type,const Vec2& pos);
 private:
 	Player* _player;
-	Player* _enemy1;
-	Player* _enemy2;
+	//Player* _enemy1;
+	//Player* _enemy2;
 	EventListenerTouchOneByOne* _listener_touch;
 	EventListenerPhysicsContact* _listener_contact;
 	Progress* _progress;
@@ -75,6 +80,10 @@ private:
 	PhysicsWorld* _world;
 	Background* _background;
 	Vector<Player*> _enemys;
+	int _maxLevel;
+	int _level;
+	std::vector<std::vector<Player::PlayerType>> _enemyTypes;
+	std::vector<std::vector<Vec2>> _enemyPositions;
 };
 
 #endif // __MainScene__

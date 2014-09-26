@@ -11,6 +11,9 @@ public:
 	CREATE_FUNC(GameOverLayer);
 
 	void home(Ref* obj);
+	void setText(const std::string& text);
+private:
+	LabelTTF* _label;
 };
 
 

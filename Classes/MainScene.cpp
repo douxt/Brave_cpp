@@ -27,15 +27,58 @@ bool MainScene::init()
 	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("image/role.plist","image/role.pvr.ccz");
 	SpriteFrameCache::getInstance()->addSpriteFramesWithFile("image/ui.plist","image/ui.pvr.ccz");
 
+	initLevel();
 	addRoles();
 	addUI();
 	addListener();
 	addObserver();
-	this->schedule(schedule_selector(MainScene::enemyMove), 1);
+	this->schedule(schedule_selector(MainScene::enemyMove), 3);
 
 	this->scheduleUpdate();
-
+//	_player->playAnimationForever(4);
     return true;
+}
+
+void MainScene::initLevel()
+{
+	_level = 0;
+	_maxLevel = 2;
+	std::vector<Player::PlayerType> types;
+	types.push_back(Player::ENEMY1);
+	types.push_back(Player::ENEMY2);
+	_enemyTypes.push_back(types);
+
+	types.clear();
+	types.push_back(Player::ENEMY1);
+	types.push_back(Player::ENEMY2);
+	types.push_back(Player::ENEMY2);
+	_enemyTypes.push_back(types);
+
+	types.clear();
+	types.push_back(Player::ENEMY1);
+	types.push_back(Player::ENEMY1);
+	types.push_back(Player::ENEMY2);
+	types.push_back(Player::BOSS);
+	_enemyTypes.push_back(types);
+
+	std::vector<Vec2> positions;
+	positions.push_back(VisibleRect::center());
+	positions.push_back(VisibleRect::right() - Vec2(200, 0));
+	_enemyPositions.push_back(positions);
+
+	positions.clear();
+	positions.push_back(VisibleRect::center());
+	positions.push_back(VisibleRect::right() - Vec2(200, 0) + Vec2(0, 200));
+	positions.push_back(VisibleRect::right() - Vec2(200, 0) - Vec2(0, 200));
+	_enemyPositions.push_back(positions);
+
+	positions.clear();
+	positions.push_back(VisibleRect::center() + Vec2(0, 200));
+	positions.push_back(VisibleRect::center() - Vec2(0, 200));
+	positions.push_back(VisibleRect::right() - Vec2(200, 0) + Vec2(0, 200));
+	positions.push_back(VisibleRect::right() - Vec2(200, 0) - Vec2(0, 200));
+	_enemyPositions.push_back(positions);
+
 }
 
 void MainScene::onEnter()
@@ -166,21 +209,26 @@ void MainScene::addRoles()
 	_player = Player::create(Player::PlayerType::PLAYER);
 	_player->setPosition(VisibleRect::left().x + _player->getContentSize().width/2, VisibleRect::top().y/2);
 	this->addChild(_player,10);
-	addEnemy();
+	addEnemyByLevel(0);
 }
 
 void MainScene::addEnemy()
 {
 	//add enemy1
-	_enemy1 = Player::create(Player::PlayerType::ENEMY1);
-	_enemy1->setPosition(VisibleRect::right().x - _player->getContentSize().width/2, VisibleRect::top().y/2);
+	auto _enemy1 = Player::create(Player::PlayerType::ENEMY1);
+	_enemy1->setPosition(VisibleRect::right().x - _player->getContentSize().width/2, VisibleRect::top().y/3);
 	this->addChild(_enemy1,10);
 	_enemys.pushBack(_enemy1);
 	//add enemy2
-	_enemy2 = Player::create(Player::PlayerType::ENEMY2);
+	auto _enemy2 = Player::create(Player::PlayerType::ENEMY2);
 	_enemy2->setPosition(VisibleRect::right().x*2/3 - _player->getContentSize().width/2, VisibleRect::top().y/2);
 	this->addChild(_enemy2,10);
 	_enemys.pushBack(_enemy2);
+	//
+	auto boss = Player::create(Player::PlayerType::BOSS);
+	boss->setPosition(VisibleRect::right().x - _player->getContentSize().width/2, VisibleRect::top().y/3*2);
+	this->addChild(boss,10);
+	_enemys.pushBack(boss);
 }
 
 void MainScene::addUI()
@@ -257,11 +305,12 @@ void MainScene::gotoNextLevel(Ref* obj)
 
 void MainScene::enemyDead(Ref* obj)
 {
-	auto player= (Player*)obj;
+	auto player= dynamic_cast<Player*>(obj);
 	if(Player::PlayerType::PLAYER == player->getPlayerType())
 	{
 		_player = nullptr;
 		auto layer = GameOverLayer::create();
+		layer->setText("You Died!");
 		this->addChild(layer,10000);
 	}
 	else
@@ -269,7 +318,16 @@ void MainScene::enemyDead(Ref* obj)
 		_enemys.eraseObject(player,true);
 		log("onEnemyDead:%d", _enemys.size());
 		if(_enemys.size() == 0)
+		{
+			if(_level == 2)
+			{
+				auto layer = GameOverLayer::create();
+				layer->setText("You Win!");
+				this->addChild(layer,10000);
+				return;
+			}
 			showNextLevelItem();
+		}
 	}
 
 
@@ -277,7 +335,8 @@ void MainScene::enemyDead(Ref* obj)
 
 void MainScene::backgroundMoveEnd(Ref* obj)
 {
-	addEnemy();
+	_level++;
+	addEnemyByLevel(_level);
 	log("adding enemy...");
 }
 
@@ -304,7 +363,7 @@ void MainScene::enemyMove(float dt)
 				}
 			}else
 			{
-				enemy->walkTo(_player->getPosition());
+				enemy->walkTo(_player->getBestAttackPosition(enemy->getPosition()));
 			}
 		}
 	}
@@ -330,3 +389,28 @@ void MainScene::update(float dt)
 		enemy->setZOrder(VisibleRect::top().y - enemy->getPosition().y);
 	}
 }
+
+void MainScene::addEnemyByLevel(int level)
+{
+	if(level > _maxLevel)
+	{
+		return;
+	}
+
+	auto types = _enemyTypes[level];
+	auto positions = _enemyPositions[level];
+
+	for(int i=0; i< types.size();i++)
+	{
+		addOneEnemy(types[i], positions[i]);
+	}
+}
+
+void MainScene::addOneEnemy(Player::PlayerType type,const Vec2& pos)
+{
+	auto enemy = Player::create(type);
+	enemy->setPosition(pos);
+	this->addChild(enemy,10);
+	_enemys.pushBack(enemy);
+}
+
