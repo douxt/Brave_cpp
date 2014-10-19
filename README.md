@@ -6,6 +6,6 @@ You need to copy cocos2d folder from another project into the project root.
 The original lua version:
 https://github.com/rainswan/Brave
 
-<br>
-Demo:
+
+Demo:<br>
 <img src="https://github.com/douxt/Brave_cpp/blob/master/Resources/win.gif">
