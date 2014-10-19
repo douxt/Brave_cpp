@@ -32,7 +32,8 @@ FSM* FSM::addState(std::string state, std::function<void()> onEnter)
 		return nullptr;
 	}
 	_states.insert(state);
-	_onEnters.insert(std::pair<std::string, std::function<void()>>(state, onEnter));
+//	_onEnters.insert(std::pair<std::string, std::function<void()>>(state, onEnter));
+	_onEnters[state] = onEnter;
 	return this;
 }
 

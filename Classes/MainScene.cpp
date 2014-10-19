@@ -329,8 +329,6 @@ void MainScene::enemyDead(Ref* obj)
 			showNextLevelItem();
 		}
 	}
-
-
 }
 
 void MainScene::backgroundMoveEnd(Ref* obj)
